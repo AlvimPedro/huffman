@@ -1,8 +1,8 @@
 
-# f = open('a.txt', 'rb')
+# f = open('a.txt')
 # byte = f.read()
 
-byte = 'ABBBBBBBBBBBBBBBBBBBBBBBBBBCCAAAAADDCCCCCCCCCCCCC'
+# byte = 'ABBBBBBBBBBBBBBBBBBBBBBBBBBCCAAAAADDCCCCCCCCCCCCCGGGHHHHUZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ'
 
 # Criação dos nós
 class NodeTree(object):
@@ -27,20 +27,48 @@ def huffman_code_tree(node, left=True, binString=''):
         return {node: binString}
     (l, r) = node.children()
     d = dict()
-    d.update(huffman_code_tree(l, True, binString + '0'))
-    d.update(huffman_code_tree(r, False, binString + '1'))
+    d.update(huffman_code_tree(l, True, binString + '1'))
+    d.update(huffman_code_tree(r, False, binString + '0'))
     return d
 
 
 # Cálculo da frequência de repetição dos caracteres 
-freq = {}
-for c in byte:
-    if c in freq:
-        freq[c] += 1
-    else:
-        freq[c] = 1
+# freq = {}
+# for c in byte:
+#     if c in freq:
+#         freq[c] += 1
+#     else:
+#         freq[c] = 1
 
-freq = sorted(freq.items(), key=lambda x: x[1], reverse=True)
+# freq = sorted(freq.items(), key=lambda x: x[1], reverse=True)
+# print(freq)
+
+f = open('a.txt', 'rb')
+
+byte = f.read(1)
+
+contBytes = [0] * 256 
+contTotal = 0
+
+while byte:
+    contBytes[int.from_bytes(byte, 'big')] += 1
+    contTotal += 1
+
+    byte = f.read(1)
+
+contBytesMapped = [(0,0)] * 256
+for i in range(256):
+    contBytesMapped[i] = (i, contBytes[i])
+
+
+def takeSecond(elem):
+    return elem[1]
+contBytesMapped.sort(reverse=True, key=takeSecond)
+
+print(contBytesMapped)
+
+
+freq = contBytesMapped
 
 nodes = freq
 
