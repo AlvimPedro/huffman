@@ -119,3 +119,27 @@ compressedBytes.append(int(nextBinByte, base=2))
 print(compressedBytes)
 compressedBytesArray = bytearray(compressedBytes)
 compressedFile.write(compressedBytesArray)
+
+#Agora dá início a parte do código que decodifica os dados salvos no arquivo .pphuffman
+encodedFile = open('compressed.pphuff', 'rb')
+encodedData = encodedFile.read(1)
+
+def huffmanDecoding(encodedData, huffmanTree):  
+    treeHead = huffmanTree  
+    decodedOutput = []  
+    for x in encodedData:  
+        if x == '1':  
+            huffmanTree = huffmanTree.right     
+        elif x == '0':  
+            huffmanTree = huffmanTree.left  
+        try:  
+            if huffmanTree.left.symbol == None and huffmanTree.right.symbol == None:  
+                pass  
+        except AttributeError:  
+            decodedOutput.append(huffmanTree.symbol)  
+            huffmanTree = treeHead  
+          
+    string = ''.join([str(item) for item in decodedOutput])  
+    return string
+
+print('Aqui vai o arquivo decodificado')
