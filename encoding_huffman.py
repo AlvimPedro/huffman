@@ -1,13 +1,4 @@
-
-# f = open('a.txt')
-# byte = f.read()
-
-# byte = 'ABBBBBBBBBBBBBBBBBBBBBBBBBBCCAAAAADDCCCCCCCCCCCCCGGGHHHHUZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ'
-
 # Criação dos nós
-from ast import While
-
-
 class NodeTree(object):
 
     def __init__(self, left=None, right=None):
@@ -17,17 +8,14 @@ class NodeTree(object):
     def children(self):
         return (self.left, self.right)
 
-    def nodes(self):
-        return (self.left, self.right)
-
     def __str__(self):
         return '%s_%s' % (self.left, self.right)
 
 
 # Função principal para codificar
 def huffman_code_tree(node, left=True, binString=''):
-    if type(node) is str:
-        return {node: binString}
+    if type(node) is str:               #Se for uma folha
+        return {node: binString}        #Retorna a codeword final para atualizar o dicionário.
     (l, r) = node.children()
     d = dict()
     d.update(huffman_code_tree(l, True, binString + '1'))
@@ -47,6 +35,7 @@ while byte:
     contTotal += 1
 
     byte = f.read(1)
+f.close()
 
 
 #É feito um mapeamento de cada simbolo com a frequência e ordenado
@@ -62,26 +51,30 @@ contBytesMapped.sort(reverse=True, key=takeSecond)
 # print(contBytesMapped)
 
 
-freq = contBytesMapped
+nodes = contBytesMapped
 
-nodes = freq
-
+print(nodes)
 while len(nodes) > 1:
-    (key1, c1) = nodes[-1]
-    (key2, c2) = nodes[-2]
-    nodes = nodes[:-2]
-    node = NodeTree(key1, key2)
-    nodes.append((node, c1 + c2))
+    (key1, c1) = nodes[-1]          #Último elemento (Que tem a menor probabilidade)
+    (key2, c2) = nodes[-2]          #Penúltimo elemento
+    nodes = nodes[:-2]              #Retira eles da lista
+    node = NodeTree(key1, key2)     #Cria um nó que coloca o left e right do nó
+    nodes.append((node, c1 + c2))   #Coloca na lista novamente esse novo nó
 
-    nodes = sorted(nodes, key=lambda x: x[1], reverse=True)
+    nodes = sorted(nodes, key=lambda x: x[1], reverse=True) #Ordena para 
+
+# print(nodes[0][0].children()[1].children())
+print(nodes[0][0])
+
+raiz = nodes[0][0]
 
 
-huffmanCode = huffman_code_tree(nodes[0][0])
+huffmanCode = huffman_code_tree(raiz)
 
 
 print(' Chars | Huffman Tree ')
 print('----------------------')
-for (char, frequency) in freq:
+for (char, frequency) in contBytesMapped:
     print(' %-4r |%12s' % (char, huffmanCode[char]))
 
 #Criação do arquivo comprimido
@@ -106,6 +99,7 @@ while byte:
             nextBinByte = ''
     
     byte = f.read(1)
+f.close()
 
 #Caso falte bits no último byte, preencher até ser um byte
 #No Header do arquivo comprimido vai ter essa quantidade de bits que deve ser descartado do final
@@ -114,32 +108,66 @@ while len(nextBinByte) < 8:
     contBitsFinal += 1
     nextBinByte += '1'
 
+print(contBitsFinal)
+
 compressedBytes.append(int(nextBinByte, base=2))
 
 print(compressedBytes)
 compressedBytesArray = bytearray(compressedBytes)
 compressedFile.write(compressedBytesArray)
+compressedFile.close()
 
 #Agora dá início a parte do código que decodifica os dados salvos no arquivo .pphuffman
+# encodedFile = open('compressed.pphuff', 'rb')
+# encodedData = encodedFile.read(1)
+
+
 encodedFile = open('compressed.pphuff', 'rb')
-encodedData = encodedFile.read(1)
+byte = encodedFile.read(1)
+binStr = ''
+while byte:
+    byteInt = int.from_bytes(byte, 'big')       #Lê o número do byte
+    binStr += format(byteInt, 'b').zfill(8)     #Adiciona os bits do número na string de binários
+
+    byte = encodedFile.read(1)
+
+binStr = binStr[:-contBitsFinal]
+print(binStr)
+
+
 
 def huffmanDecoding(encodedData, huffmanTree):  
     treeHead = huffmanTree  
     decodedOutput = []  
     for x in encodedData:  
-        if x == '1':  
-            huffmanTree = huffmanTree.right     
-        elif x == '0':  
-            huffmanTree = huffmanTree.left  
-        try:  
-            if huffmanTree.left.symbol == None and huffmanTree.right.symbol == None:  
-                pass  
-        except AttributeError:  
-            decodedOutput.append(huffmanTree.symbol)  
-            huffmanTree = treeHead  
-          
-    string = ''.join([str(item) for item in decodedOutput])  
-    return string
+        if x == '0':  
+            print(type(huffmanTree), huffmanTree)
+            if type(huffmanTree.right) is str:
+                decodedOutput.append(int(huffmanTree.right))
+                huffmanTree = treeHead
+            else:
+                huffmanTree = huffmanTree.right     
+
+        elif x == '1': 
+            print(type(huffmanTree), huffmanTree)
+            if type(huffmanTree.left) is str:
+                decodedOutput.append(int(huffmanTree.left))
+                huffmanTree = treeHead
+            else:
+                huffmanTree = huffmanTree.left  
+         
+    return decodedOutput
+
+decodedMessage = huffmanDecoding(binStr, raiz)
+print(decodedMessage)
+
+decompressedFile = open('decompressed.txt', 'wb')
+
+decompressedBytesArray = bytearray(decodedMessage)
+decompressedFile.write(decompressedBytesArray)
+decompressedFile.close()
+
+
+# decoded = huffmanDecoding()
 
 print('Aqui vai o arquivo decodificado')
