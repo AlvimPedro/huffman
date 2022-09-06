@@ -1,6 +1,5 @@
 # Criação dos nós
-from cmath import exp
-
+import json
 
 class NodeTree(object):
     def __init__(self, left=None, right=None):
@@ -106,13 +105,12 @@ def compressFile(fileName, root):
     #Criação do arquivo comprimido
     compressedFileName = fileName.split('.')[0] + '.pphuff'
     compressedFile = open(compressedFileName, 'wb')
-###############################################################################################
-###############################################################################################
+
     #Header
-    arrTree = ['n'] * 6400140
-    arrHuffmanTree = buildHeaderTree(1, root, arrTree)
-    # print(arrHuffmanTree)
-    headerBytes = buildHeader(arrHuffmanTree, contBitsFinal, fileName.split('.')[1])
+    dictTree = {}
+    dictHuffmanTree = buildHeaderTree(1, root, dictTree)
+
+    headerBytes = buildHeader(dictHuffmanTree, contBitsFinal, fileName.split('.')[1])
     compressedFile.write(headerBytes)
 
     #Content
@@ -130,7 +128,8 @@ def decompressFile(fileNamePphuff):
     #Ler o Header
     fileTree = encodedFile.readline()
     fileTree = fileTree.decode()
-    arrTree = fileTree[:len(fileTree)-1].split()
+    dictTree = fileTree[:len(fileTree)-1]
+    dictTree = json.loads(dictTree)
 
     fileContBits = encodedFile.readline()
     fileContBits = fileContBits.decode()
@@ -140,7 +139,9 @@ def decompressFile(fileNamePphuff):
     fileFormat = fileFormat.decode()
     fileFormat = fileFormat[:len(fileFormat)-1]
 
-    root = getHeaderTree(1, arrTree)
+    print(dictTree)
+    root = getHeaderTree(1, dictTree)
+    print(root)
 
     byte = encodedFile.read(1)
     binStr = ''
@@ -194,39 +195,34 @@ n   n   n   n   n   5   6   7   8   9
 left = k * 2
 right = (k * 2) + 1
 '''
-def buildHeaderTree(index, huffmanTree, arrTree):
+def buildHeaderTree(index, huffmanTree, dictTree):
     treeHead = huffmanTree
 
     if type(treeHead) is str:
-        arrTree[index] = treeHead
-        return arrTree
-    else:
-        arrTree[index] = 'n'
-        arrLeft = buildHeaderTree(index * 2, treeHead.left, arrTree)
-        arrRight = buildHeaderTree((index * 2) + 1, treeHead.right, arrLeft)
-        return arrRight
+        dictTree[str(index)] = int(treeHead)
+        return dictTree
 
-def getHeaderTree(index, arrTree):
-    #Se for letra (É um nó)
-    # print(index)
-    if not arrTree[index].isnumeric():
-        node = NodeTree(getHeaderTree(index * 2, arrTree), getHeaderTree((index * 2) + 1, arrTree))
+    else:
+        dictLeft = buildHeaderTree(index * 2, treeHead.left, dictTree)
+        dictRight = buildHeaderTree((index * 2) + 1, treeHead.right, dictLeft)
+        return dictRight
+
+
+def getHeaderTree(index, dictTree):
+    #Folha
+    if str(index) in dictTree:
+        
+        return str(dictTree[str(index)])
+    else:
+        node = NodeTree(getHeaderTree(index * 2, dictTree), getHeaderTree((index * 2) + 1, dictTree))
         return node
-    else:
-        leaf = arrTree[index]
-        return leaf
 
-def buildHeader(arrHuffmanTree, contBitsFinal, fileFormart):
-    compactArrHuffmanTree = []
-    i = len(arrHuffmanTree)
-    # print(arrHuffmanTree[:200])
-    while i != 0:
-        i -= 1
-        if arrHuffmanTree[i].isnumeric():
-            compactArrHuffmanTree = arrHuffmanTree[:i+1]
-            i = 0
 
-    strTree = ' '.join(compactArrHuffmanTree)
+def buildHeader(dictHuffmanTree, contBitsFinal, fileFormart):
+    #Dictionary para String
+    compactDictHuffmanTree = json.dumps(dictHuffmanTree, separators=(',', ':'))
+
+    strTree = compactDictHuffmanTree
     strBits = str(contBitsFinal)
     strFormat = fileFormart
 
@@ -242,8 +238,3 @@ if __name__ == "__main__":
     compressFile('a.txt', raiz)
     raizTemp = raiz
     decompressFile('a.pphuff')
-
-    # print(' Chars | Huffman Tree ')
-    # print('----------------------')
-    # for char in huffmanCode:
-    #     print(' %-4r |%12s' % (char.zfill(3), huffmanCode[char]))
