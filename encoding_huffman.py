@@ -1,6 +1,8 @@
 # Criação dos nós
-class NodeTree(object):
+from cmath import exp
 
+
+class NodeTree(object):
     def __init__(self, left=None, right=None):
         self.left = left
         self.right = right
@@ -60,15 +62,17 @@ def huffmanDict(node, left=True, binString=''):
     d.update(huffmanDict(r, False, binString + '0'))
     return d
 
-# print(' Chars | Huffman Tree ')
-# print('----------------------')
-# for (char, frequency) in contBytesMapped:
-#     print(' %-4r |%12s' % (char, huffmanCode[char]))
 
-def compressFile(fileName, huffmanCode):
-    #Criação do arquivo comprimido
-    compressedFileName = fileName.split('.')[0] + '.pphuff'
-    compressedFile = open(compressedFileName, 'wb')
+def compressFile(fileName, root):
+    huffmanCode = huffmanDict(root)
+    # print(len(huffmanCode))
+    # print(' Chars | Huffman Tree ')
+    # print('----------------------')
+    
+    # for char in huffmanCode:
+    #     print(' %-4r |%12s' % (char.zfill(3), huffmanCode[char]))
+    # print(root)
+
     compressedBytes = []
 
     f = open(fileName, 'rb')
@@ -97,21 +101,47 @@ def compressFile(fileName, huffmanCode):
     while len(nextBinByte) < 8:
         contBitsFinal += 1
         nextBinByte += '1'
-#####################################
-####Colocar o contBitsFinal no Header
+    
 
+    #Criação do arquivo comprimido
+    compressedFileName = fileName.split('.')[0] + '.pphuff'
+    compressedFile = open(compressedFileName, 'wb')
+###############################################################################################
+###############################################################################################
+    #Header
+    arrTree = ['n'] * 6400140
+    arrHuffmanTree = buildHeaderTree(1, root, arrTree)
+    # print(arrHuffmanTree)
+    headerBytes = buildHeader(arrHuffmanTree, contBitsFinal, fileName.split('.')[1])
+    compressedFile.write(headerBytes)
+
+    #Content
     compressedBytes.append(int(nextBinByte, base=2))
     compressedBytesArray = bytearray(compressedBytes)
     compressedFile.write(compressedBytesArray)
     compressedFile.close()
 
-####Retirar depois do HEADER
-    contBitsFinalTemp = contBitsFinal
-    return contBitsFinalTemp
+
 
 #Agora dá início a parte do código que decodifica os dados salvos no arquivo .pphuffman
-def decompressFile(fileNamePphuff, raizTemp, contBitsFinalTemp):
+def decompressFile(fileNamePphuff):
     encodedFile = open(fileNamePphuff, 'rb')
+
+    #Ler o Header
+    fileTree = encodedFile.readline()
+    fileTree = fileTree.decode()
+    arrTree = fileTree[:len(fileTree)-1].split()
+
+    fileContBits = encodedFile.readline()
+    fileContBits = fileContBits.decode()
+    contBitsFinal = int(fileContBits[:len(fileContBits)-1])
+
+    fileFormat = encodedFile.readline()
+    fileFormat = fileFormat.decode()
+    fileFormat = fileFormat[:len(fileFormat)-1]
+
+    root = getHeaderTree(1, arrTree)
+
     byte = encodedFile.read(1)
     binStr = ''
     while byte:
@@ -119,18 +149,13 @@ def decompressFile(fileNamePphuff, raizTemp, contBitsFinalTemp):
         binStr += format(byteInt, 'b').zfill(8)     #Adiciona os bits do número na string de binários
         byte = encodedFile.read(1)
 
-#######################################
-#####Pegar esse contBitsFinal do HEADER
-    # binStr = binStr[:-contBitsFinal]
-    binStr = binStr[:-contBitsFinalTemp]
+    binStr = binStr[:-contBitsFinal]
 
-####################################
-####Pegar a árvore da raiz do HEADER
-    decodedMessage = huffmanDecoding(binStr, raizTemp)
+    decodedMessage = huffmanDecoding(binStr, root)
 
-###############################################
-####Pegar formato origianl do arquivo do HEADER
-    decompressedFile = open('decompressed.txt', 'wb')
+    decompressedFileName = 'd_' + fileNamePphuff.split('.')[0] + '.' + fileFormat
+
+    decompressedFile = open(decompressedFileName, 'wb')
     decompressedBytesArray = bytearray(decodedMessage)
     decompressedFile.write(decompressedBytesArray)
     decompressedFile.close()
@@ -156,17 +181,69 @@ def huffmanDecoding(encodedDataBits, huffmanTree):
          
     return decodedOutput
 
+'''
+           1
+      2        3 
+   4    5    6   7
+ 8   9
+n=0 n=1 n=2 n=3 n=4 5   6   7   8   9
+
+File format:
+n   n   n   n   n   5   6   7   8   9
+
+left = k * 2
+right = (k * 2) + 1
+'''
+def buildHeaderTree(index, huffmanTree, arrTree):
+    treeHead = huffmanTree
+
+    if type(treeHead) is str:
+        arrTree[index] = treeHead
+        return arrTree
+    else:
+        arrTree[index] = 'n'
+        arrLeft = buildHeaderTree(index * 2, treeHead.left, arrTree)
+        arrRight = buildHeaderTree((index * 2) + 1, treeHead.right, arrLeft)
+        return arrRight
+
+def getHeaderTree(index, arrTree):
+    #Se for letra (É um nó)
+    # print(index)
+    if not arrTree[index].isnumeric():
+        node = NodeTree(getHeaderTree(index * 2, arrTree), getHeaderTree((index * 2) + 1, arrTree))
+        return node
+    else:
+        leaf = arrTree[index]
+        return leaf
+
+def buildHeader(arrHuffmanTree, contBitsFinal, fileFormart):
+    compactArrHuffmanTree = []
+    i = len(arrHuffmanTree)
+    # print(arrHuffmanTree[:200])
+    while i != 0:
+        i -= 1
+        if arrHuffmanTree[i].isnumeric():
+            compactArrHuffmanTree = arrHuffmanTree[:i+1]
+            i = 0
+
+    strTree = ' '.join(compactArrHuffmanTree)
+    strBits = str(contBitsFinal)
+    strFormat = fileFormart
+
+    strHeader = strTree + '\n' + strBits + '\n' + strFormat + '\n'
+
+    return bytearray(strHeader, 'utf-8')
 
 
 if __name__ == "__main__":
 
     raiz = huffmanTree('a.txt')
-    huffmanCode = huffmanDict(raiz)
-    bitsFinalTemp = compressFile('a.txt', huffmanCode)
+    
+    compressFile('a.txt', raiz)
     raizTemp = raiz
-    decompressFile('a.pphuff', raizTemp, bitsFinalTemp)
+    decompressFile('a.pphuff')
 
-    print(' Chars | Huffman Tree ')
-    print('----------------------')
-    for char in huffmanCode:
-        print(' %-4r |%12s' % (char.zfill(3), huffmanCode[char]))
+    # print(' Chars | Huffman Tree ')
+    # print('----------------------')
+    # for char in huffmanCode:
+    #     print(' %-4r |%12s' % (char.zfill(3), huffmanCode[char]))
