@@ -1,5 +1,6 @@
 # Criação dos nós
 import json
+from msilib.schema import File
 import sys
 
 class NodeTree(object):
@@ -235,8 +236,10 @@ def buildHeader(dictHuffmanTree, contBitsFinal, fileFormart):
 if __name__ == "__main__":
 
     if sys.argv[1] == "-c":
-        raiz = huffmanTree('a.txt') 
-        compressFile('a.txt', raiz)
+        file = str(sys.argv[2])
+        raiz = huffmanTree(file) 
+        compressFile(file, raiz)
         raizTemp = raiz
     elif sys.argv[1] == "-d":
-        decompressFile('a.pphuff')
+        file = str(sys.argv[2])
+        decompressFile(file)
