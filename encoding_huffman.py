@@ -1,4 +1,5 @@
 # Criação dos nós
+from ast import Try
 import json
 import math
 import os
@@ -65,7 +66,8 @@ def huffmanDict(node, left=True, binString=''):
     return d
 
 
-def compressFile(fileName, root, freqBytesArr):
+def compressFile(fileName):
+    root, freqBytesArr = huffmanTree(fileName)
     huffmanCode = huffmanDict(root)
     huffmanH(freqBytesArr, huffmanCode)
     # print(len(huffmanCode))
@@ -219,9 +221,6 @@ def huffmanDecoding(encodedDataBits, huffmanTree):
  8   9
 n=0 n=1 n=2 n=3 n=4 5   6   7   8   9
 
-File format:
-n   n   n   n   n   5   6   7   8   9
-
 left = k * 2
 right = (k * 2) + 1
 '''
@@ -264,10 +263,9 @@ def buildHeader(dictHuffmanTree, contBitsFinal, fileFormart):
 if __name__ == "__main__":
 
     if sys.argv[1] == "-c":
-        file = str(sys.argv[2])
-        raiz, freqBytesArr = huffmanTree(file) 
-        compressFile(file, raiz, freqBytesArr)
-        raizTemp = raiz
+        fileName = str(sys.argv[2])
+        compressFile(fileName)
+
     elif sys.argv[1] == "-d":
-        file = str(sys.argv[2])
-        decompressFile(file)
+        fileName = str(sys.argv[2])
+        decompressFile(fileName)
