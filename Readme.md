@@ -1,5 +1,5 @@
 # Codificação de Huffman
-------------------------
+
 ### Pedro Alvim e Pedro Souza
 
 Projeto de um Compactador e Descompactador de arquivos em python utilizando o algoritimo de Huffman. Disciplina de Teoria da Informação na Universidade de Brasília (UnB).
@@ -7,15 +7,13 @@ Projeto de um Compactador e Descompactador de arquivos em python utilizando o al
 Versão do Python utilizada: 3.10.4
 
 # Instruções:
--------------
+
 ### Compactação
-'''
+```
 python3 pphuff.py -c <nome do arquivo>
-'''
+```
 
 ### Descompactação
-'''
+```
 python3 pphuff.py -d <nome do arquivo>
-'''
-
-
+```
