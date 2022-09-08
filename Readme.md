@@ -10,10 +10,10 @@ Versão do Python utilizada: 3.10.4
 
 ### Compactação
 ```
-python3 pphuff.py -c <nome do arquivo>
+python3 pphuff.py -c nome_do_arquivo
 ```
 
 ### Descompactação
 ```
-python3 pphuff.py -d <nome do arquivo>
+python3 pphuff.py -d nome_do_arquivo
 ```
