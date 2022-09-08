@@ -262,10 +262,14 @@ def buildHeader(dictHuffmanTree, contBitsFinal, fileFormart):
 
 if __name__ == "__main__":
 
-    if sys.argv[1] == "-c":
-        fileName = str(sys.argv[2])
-        compressFile(fileName)
+    try:
+        if sys.argv[1] == "-c":
+            fileName = str(sys.argv[2])
+            compressFile(fileName)
 
-    elif sys.argv[1] == "-d":
-        fileName = str(sys.argv[2])
-        decompressFile(fileName)
+        elif sys.argv[1] == "-d":
+            fileName = str(sys.argv[2])
+            decompressFile(fileName)
+
+    except:
+        print('Ocorreu um erro.\nVerifique o comando.\n\nCompactar:\npython3 pphuff.py -c <nome do arquivo>\n\nDescompactar:\npython3 pphuff.py -d <nome do arquivo>\n')

@@ -1,5 +1,6 @@
-.bmp
-.pphuff
-.mp3
-.jpg
-.raw
+*.bmp
+*.pphuff
+*.mp3
+*.jpg
+*.raw
+*.txt
