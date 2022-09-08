@@ -1,5 +1,7 @@
 # Criação dos nós
 import json
+import math
+import os
 
 class NodeTree(object):
     def __init__(self, left=None, right=None):
@@ -49,7 +51,7 @@ def huffmanTree(fileName):
 
         nodes = sorted(nodes, key=lambda x: x[1], reverse=True) #Ordena novamente colocando esse nó na lista
 
-    return nodes[0][0] #Raiz da Árvore de Huffman
+    return nodes[0][0], contBytes#Raiz da Árvore de Huffman
 
 # Função para codificar a árvore em um dicionário com o mapeamento dos simbolos para bits
 def huffmanDict(node, left=True, binString=''):
@@ -62,8 +64,9 @@ def huffmanDict(node, left=True, binString=''):
     return d
 
 
-def compressFile(fileName, root):
+def compressFile(fileName, root, freqBytesArr):
     huffmanCode = huffmanDict(root)
+    huffmanH(freqBytesArr, huffmanCode)
     # print(len(huffmanCode))
     # print(' Chars | Huffman Tree ')
     # print('----------------------')
@@ -119,6 +122,32 @@ def compressFile(fileName, root):
     compressedFile.write(compressedBytesArray)
     compressedFile.close()
 
+    originalFileSize = os.path.getsize(fileName)
+    compressedFileSize = os.path.getsize(compressedFileName)
+    print('Taxa de compressão:',format(originalFileSize/compressedFileSize, '2f'))
+
+def huffmanH(freqBytesArr, huffmanDict):
+    contTotal = 0
+    contSize = 0
+    for i in range(256):
+        contTotal += freqBytesArr[i]
+        if freqBytesArr[i] > 0 :
+            contSize += freqBytesArr[i] * len(huffmanDict[str(i)]) 
+    print('Comprimento médio do código:',format(contSize/contTotal,'2f'))
+
+    probBytesArr = [i/contTotal for i in freqBytesArr]
+
+    entropia = 0
+
+    for i in range(256):
+        if probBytesArr[i] > 0:
+            entropia += probBytesArr[i] * math.log(probBytesArr[i], 2)
+
+    entropia = -entropia
+
+    print('Entropia:', format(entropia, '2f'))
+
+
 
 
 #Agora dá início a parte do código que decodifica os dados salvos no arquivo .pphuffman
@@ -139,9 +168,9 @@ def decompressFile(fileNamePphuff):
     fileFormat = fileFormat.decode()
     fileFormat = fileFormat[:len(fileFormat)-1]
 
-    print(dictTree)
+    # print(dictTree)
     root = getHeaderTree(1, dictTree)
-    print(root)
+    # print(root)
 
     byte = encodedFile.read(1)
     binStr = ''
@@ -233,8 +262,8 @@ def buildHeader(dictHuffmanTree, contBitsFinal, fileFormart):
 
 if __name__ == "__main__":
 
-    raiz = huffmanTree('a.txt')
+    raiz, freqBytesArr = huffmanTree('a.txt')
     
-    compressFile('a.txt', raiz)
+    compressFile('a.txt', raiz, freqBytesArr)
     raizTemp = raiz
     decompressFile('a.pphuff')
