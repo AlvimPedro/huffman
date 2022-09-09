@@ -1,6 +1,6 @@
 # Codificação de Huffman
 
-### Pedro Alvim e Pedro Souza
+### Pedro Alvim - 180108042 e Pedro Souza - 160141141
 
 Projeto de um Compactador e Descompactador de arquivos em python utilizando o algoritimo de Huffman. Disciplina de Teoria da Informação na Universidade de Brasília (UnB).
 
