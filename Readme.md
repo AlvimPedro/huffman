@@ -15,5 +15,5 @@ python3 pphuff.py -c nome_do_arquivo
 
 ### Descompactação
 ```
-python3 pphuff.py -d nome_do_arquivo
+python3 pphuff.py -d nome_do_arquivo.pphuff
 ```
